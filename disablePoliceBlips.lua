@@ -2,9 +2,11 @@ Citizen.CreateThread(function()
     while true do
         Citizen.Wait(1000)
 
-        for ped in EnumeratePeds() do
-            if DoesEntityExist(ped) and not IsPedAPlayer(ped) then
-                local blip = GetBlipFromEntity(ped)
+        local playerPed = PlayerPedId()
+
+        for entity in EnumerateEntities() do
+            if DoesEntityExist(entity) and not IsPedAPlayer(entity) then
+                local blip = GetBlipFromEntity(entity)
                 if DoesBlipExist(blip) then
                     RemoveBlip(blip)
                 end
@@ -13,20 +15,14 @@ Citizen.CreateThread(function()
     end
 end)
 
-function EnumeratePeds()
+function EnumerateEntities()
     return coroutine.wrap(function()
-        local pedHandle, pedFound = FindFirstPed()
-        if not pedFound then
-            EndFindPed(pedHandle)
-            return
-        end
-
-        local ped = pedHandle
+        local handle, entity = FindFirstPed()
+        local success
         repeat
-            coroutine.yield(ped)
-            pedFound, ped = FindNextPed(pedHandle)
-        until not pedFound
-
-        EndFindPed(pedHandle)
+            coroutine.yield(entity)
+            success, entity = FindNextPed(handle)
+        until not success
+        EndFindPed(handle)
     end)
 end
