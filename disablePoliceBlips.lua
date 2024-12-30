@@ -1,19 +1,32 @@
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(500) -- Runs every half-second to minimize performance impact
-        local pedHandle, pedFound = FindFirstPed()
-        repeat
-            -- Check if the ped is AI and not human
-            if IsPedHuman(pedHandle) == false then
-                -- Get any blip associated with this ped
-                local blip = GetBlipFromEntity(pedHandle)
+        Citizen.Wait(1000)
+
+        for ped in EnumeratePeds() do
+            if DoesEntityExist(ped) and not IsPedAPlayer(ped) then
+                local blip = GetBlipFromEntity(ped)
                 if DoesBlipExist(blip) then
-                    -- Remove the blip from the map
                     RemoveBlip(blip)
                 end
             end
-            pedFound, pedHandle = FindNextPed(pedHandle)
-        until not pedFound
-        EndFindPed(pedHandle)
+        end
     end
 end)
+
+function EnumeratePeds()
+    return coroutine.wrap(function()
+        local pedHandle, pedFound = FindFirstPed()
+        if not pedFound then
+            EndFindPed(pedHandle)
+            return
+        end
+
+        local ped = pedHandle
+        repeat
+            coroutine.yield(ped)
+            pedFound, ped = FindNextPed(pedHandle)
+        until not pedFound
+
+        EndFindPed(pedHandle)
+    end)
+end
